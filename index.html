@@ -9,12 +9,21 @@
 <body>
   <header>
     <h1>Bienvenido a Krampus Bot</h1>
-    <p>Tu sitio para gestionar las descargas.</p>
+    <p>Tu sitio para gestionar las descargas de música y videos.</p>
   </header>
   <main>
     <section>
       <h2>Sobre nosotros</h2>
-      <p>Krampus Bot es una solución para descargar y gestionar contenido.</p>
+      <p>Krampus Bot es una solución para descargar y gestionar contenido desde YouTube.</p>
+    </section>
+    <section>
+      <h2>Generar enlace de descarga</h2>
+      <form id="download-form">
+        <label for="video-url">Enlace de YouTube:</label>
+        <input type="url" id="video-url" placeholder="Ingresa un enlace de YouTube" required>
+        <button type="submit">Generar enlace</button>
+      </form>
+      <p id="response-message"></p>
     </section>
     <section>
       <h2>Opciones</h2>
@@ -28,5 +37,6 @@
   <footer>
     <p>&copy; 2025 Krampus Bot</p>
   </footer>
+  <script src="script.js"></script>
 </body>
 </html>
