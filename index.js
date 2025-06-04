@@ -3,12 +3,8 @@ const {
   useMultiFileAuthState,
   fetchLatestBaileysVersion,
   makeCacheableSignalKeyStore,
-  useMobileSocket,
-  fetchLatestWaWebVersion,
-  makeWALegacySocket,
-  makeWAMobileSocket,
+  DisconnectReason,
 } = require("@whiskeysockets/baileys");
-const { DisconnectReason } = require("@whiskeysockets/baileys");
 const pino = require("pino");
 const readline = require("readline");
 const { crearSubBot } = require("./utils/subbot");
@@ -42,28 +38,28 @@ async function iniciarBot(nombre = "principal") {
     getMessage: async () => ({ conversation: "mensaje no encontrado" }),
   });
 
+  // Actualizar credenciales
   sock.ev.on("creds.update", saveCreds);
 
-  sock.ev.on("connection.update", async ({ connection, lastDisconnect, code, isNewLogin }) => {
-    if (connection === "connecting" && isNewLogin) {
-      const phoneNumber = await askQuestion("📱 Ingresa tu número de teléfono (con + y código de país): ");
-      console.log(`🔧 Solicitando código para el número: ${phoneNumber}`);
-    }
-
-    if (code) {
-      console.log("🔗 Código de vinculación generado:");
+  // Si no hay sesión previa, pedir número e iniciar emparejamiento
+  if (!state.creds.registered) {
+    const phoneNumber = await askQuestion("📱 Ingresa tu número (con + y código de país, ej: +34612345678): ");
+    try {
+      const code = await sock.requestPairingCode(phoneNumber);
+      console.log("\n🔗 Código de vinculación generado:");
       console.log(`➡️ Escribe este código en WhatsApp: ${code}`);
       console.log("➡️ WhatsApp > Dispositivos vinculados > Vincular dispositivo > Ingresar código");
+    } catch (err) {
+      console.error("❌ Error al generar el código:", err);
     }
+  }
 
+  // Eventos
+  sock.ev.on("connection.update", ({ connection, lastDisconnect }) => {
     if (connection === "open") {
       console.log(`✅ Bot "${nombre}" conectado correctamente.`);
     }
-
-    if (
-      connection === "close" &&
-      (!lastDisconnect?.error || lastDisconnect.error?.output?.statusCode !== DisconnectReason.loggedOut)
-    ) {
+    if (connection === "close" && lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut) {
       console.log("♻️ Reconectando...");
       iniciarBot(nombre);
     }
